@@ -114,10 +114,11 @@ function parseJustfile(text) {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    // Skip just directives and variable/alias assignments (`set x := y`,
+    // `alias b := build`, `FOO := "bar"`). The `:=` operator is unambiguous.
+    if (/:=/.test(line)) continue;
     const m = line.match(/^([a-z][a-z0-9-]*)(?:\s+[^:]+?)?:\s*(.*)$/);
     if (!m) continue;
-    // Guard against `foo := "bar"` variable assignments.
-    if (/^[a-z][a-z0-9_]*\s*:=/.test(line)) continue;
     const [, name, depsPart] = m;
     const deps = depsPart.trim().split(/\s+/).filter(d => /^[a-z][a-z0-9-]*$/.test(d));
 
