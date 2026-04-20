@@ -44,7 +44,8 @@ const LIBRARY_ALWAYS = [
 ];
 
 const FEATURE_RECIPES = {
-  frontend: ['css', 'css-watch', 'portal', 'portal-dev'],
+  css: ['css', 'css-watch'],
+  frontend: ['portal', 'portal-dev'],
   icons: ['icon', 'og'],
   fonts: ['fonts', 'fonts-check'],
   legal: ['legal-check'],
@@ -83,7 +84,8 @@ function expectedDepsFor(name, manifest) {
   if (name === 'build' && isApp) {
     const deps = ['install', 'vendor'];
     if (features.has('fonts')) deps.push('fonts-check');
-    if (features.has('frontend')) deps.push('css', 'portal');
+    if (features.has('css')) deps.push('css');
+    if (features.has('frontend')) deps.push('portal');
     return deps;
   }
 

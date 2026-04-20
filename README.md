@@ -194,7 +194,7 @@ Manifest schema (`just.manifest.json` in repo root):
 ```
 
 - **`category`**: `"app"` or `"library"`
-- **`features`**: subset of `frontend`, `icons`, `fonts`, `legal`, `database`, `docker`, `fly`
+- **`features`**: subset of `css`, `frontend`, `icons`, `fonts`, `legal`, `database`, `docker`, `fly`
 - **`allowlist`**: project-specific recipes that don't match the standard catalog
 
 See the conventions doc for the full standard recipe list and what each feature requires.
