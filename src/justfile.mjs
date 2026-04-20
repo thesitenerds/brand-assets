@@ -45,7 +45,8 @@ const LIBRARY_ALWAYS = [
 
 const FEATURE_RECIPES = {
   frontend: ['css', 'css-watch', 'portal', 'portal-dev'],
-  assets: ['fonts', 'fonts-check', 'icon', 'og'],
+  icons: ['icon', 'og'],
+  fonts: ['fonts', 'fonts-check'],
   legal: ['legal-check'],
   database: ['db-up', 'db-down', 'db-shell', 'migrate', 'migrate-version', 'sqlc-gen'],
   docker: ['docker-build', 'docker-run'],
@@ -81,14 +82,14 @@ function expectedDepsFor(name, manifest) {
 
   if (name === 'build' && isApp) {
     const deps = ['install', 'vendor'];
-    if (features.has('assets')) deps.push('fonts-check');
+    if (features.has('fonts')) deps.push('fonts-check');
     if (features.has('frontend')) deps.push('css', 'portal');
     return deps;
   }
 
   if (name === 'check') {
     const deps = ['fmt', 'vet', 'lint', 'test'];
-    if (features.has('assets')) deps.push('fonts-check');
+    if (features.has('fonts')) deps.push('fonts-check');
     if (features.has('legal')) deps.push('legal-check');
     if (isApp) deps.push('justfile-check');
     return deps;

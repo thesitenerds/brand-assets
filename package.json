@@ -1,6 +1,6 @@
 {
   "name": "brand-assets",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Build-time tooling for Go+Echo projects: favicon/OG-card generators, manifest-driven font vendoring, legal-doc drift detection, and justfile convention linter. Zero runtime dependency on this package — consumers call the engines once during build.",
   "license": "MIT",
   "author": "Julian Colon",
