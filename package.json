@@ -1,0 +1,38 @@
+{
+  "name": "brand-assets",
+  "version": "0.1.0",
+  "description": "Build-time brand asset generators: favicons, OG cards, font vendoring with license checks, and legal-doc drift detection. Zero runtime dependency on this package — consumers call the engines once during build and ship the outputs.",
+  "license": "MIT",
+  "author": "Julian Colon",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thesitenerds/brand-assets.git"
+  },
+  "type": "module",
+  "exports": {
+    "./icon": "./src/icon.mjs",
+    "./og": "./src/og.mjs",
+    "./fonts": "./src/fonts.mjs",
+    "./legal-sync": "./src/legal-sync.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "opentype.js": "^1.3.4",
+    "png-to-ico": "^3.0.1",
+    "sharp": "^0.34.5"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "favicon",
+    "opengraph",
+    "brand",
+    "fonts",
+    "build-tools"
+  ]
+}

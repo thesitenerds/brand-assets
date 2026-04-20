@@ -1,0 +1,20 @@
+{
+  "icon": {
+    "letters": "tsn",
+    "bgColor": "#0B0A09",
+    "textColor": "#F5F0E6",
+    "accentColor": "#3DAAA0"
+  },
+  "og": {
+    "bgColor": "#0B0A09",
+    "lineColor": "#221F1A",
+    "textColor": "#F5F0E6",
+    "dimColor": "#8A857B",
+    "accentColor": "#3DAAA0",
+    "eyebrowText": "— software studio",
+    "wordmarkText": "thesitenerds.",
+    "taglineText": "custom websites for buffalo and beyond.",
+    "footerLeft": "buffalo, ny · 2026",
+    "footerRight": "thesitenerds.com"
+  }
+}
