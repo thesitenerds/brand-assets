@@ -1,7 +1,7 @@
 {
   "name": "brand-assets",
-  "version": "0.1.0",
-  "description": "Build-time brand asset generators: favicons, OG cards, font vendoring with license checks, and legal-doc drift detection. Zero runtime dependency on this package — consumers call the engines once during build and ship the outputs.",
+  "version": "0.2.0",
+  "description": "Build-time tooling for Go+Echo projects: favicon/OG-card generators, manifest-driven font vendoring, legal-doc drift detection, and justfile convention linter. Zero runtime dependency on this package — consumers call the engines once during build.",
   "license": "MIT",
   "author": "Julian Colon",
   "repository": {
@@ -13,7 +13,8 @@
     "./icon": "./src/icon.mjs",
     "./og": "./src/og.mjs",
     "./fonts": "./src/fonts.mjs",
-    "./legal-sync": "./src/legal-sync.mjs"
+    "./legal-sync": "./src/legal-sync.mjs",
+    "./justfile": "./src/justfile.mjs"
   },
   "files": [
     "src",

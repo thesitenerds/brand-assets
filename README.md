@@ -1,13 +1,16 @@
 # brand-assets
 
-Build-time brand asset generators. One package, four engines:
+Build-time tooling for Go+Echo projects. One package, five engines:
 
 - **`brand-assets/icon`** — favicon pipeline (monogram → outlined SVG → PNGs → multi-layer ICO)
 - **`brand-assets/og`** — Open Graph / Twitter summary_large_image card (1200×630 PNG)
 - **`brand-assets/fonts`** — manifest-driven WOFF2 vendoring with license allowlist + drift-detectable lockfile
 - **`brand-assets/legal-sync`** — structural parity check between MD templates and published HTML
+- **`brand-assets/justfile`** — justfile convention linter (verifies recipe naming, composition, docs, ordering against `~/workspace/notes/work/justfile-conventions.md`)
 
-All four are build-time tools. Nothing from this package ships to the browser; consumers run an engine during `pnpm build`, commit the output, and serve the output.
+All five are build-time tools. Nothing from this package ships to the browser; consumers run an engine during `pnpm build` or `pnpm check:*` and commit the output (if any).
+
+> **Note on scope.** The package name will evolve — originally narrower ("brand assets"), it now covers build-time correctness tooling too (legal-sync, justfile linting). A rename is planned for `v1.0.0`; until then, `brand-assets` hosts the whole set.
 
 ## Install
 
@@ -146,6 +149,55 @@ for (const r of results) {
 }
 if (fail) process.exit(1);
 ```
+
+## Justfile linter — `brand-assets/justfile`
+
+Parses a project's `justfile` and verifies it conforms to the conventions documented at `~/workspace/notes/work/justfile-conventions.md` — required recipes per category + features, composition dependencies on `build` / `check` / `dev` / `run` / `docker-build` / `docker-run`, doc comments above every recipe, and ordering.
+
+```js
+// scripts/check-justfile.mjs
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { lintJustfile } from 'brand-assets/justfile';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(HERE, '..');
+
+const manifest = JSON.parse(await fs.readFile(path.join(REPO_ROOT, 'just.manifest.json'), 'utf8'));
+const { issues } = await lintJustfile({
+  justfilePath: path.join(REPO_ROOT, 'justfile'),
+  manifest,
+});
+
+let errors = 0;
+for (const issue of issues) {
+  const where = issue.line > 0 ? `:${issue.line}` : '';
+  console.error(`[${issue.level}] justfile${where}: ${issue.message}`);
+  if (issue.level === 'error') errors++;
+}
+if (errors) {
+  console.error(`\n${errors} error${errors === 1 ? '' : 's'}. Fix and re-run.`);
+  process.exit(1);
+}
+console.log('justfile OK');
+```
+
+Manifest schema (`just.manifest.json` in repo root):
+
+```json
+{
+  "category": "app",
+  "features": ["frontend", "assets", "legal", "database", "docker", "fly"],
+  "allowlist": ["dev-api"]
+}
+```
+
+- **`category`**: `"app"` or `"library"`
+- **`features`**: subset of `frontend`, `assets`, `legal`, `database`, `docker`, `fly`
+- **`allowlist`**: project-specific recipes that don't match the standard catalog
+
+See the conventions doc for the full standard recipe list and what each feature requires.
 
 ## Versioning
 
