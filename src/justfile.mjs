@@ -1,5 +1,5 @@
 // Justfile linter. Verifies that a project's justfile matches the conventions
-// documented at ~/workspace/notes/work/justfile-conventions.md — required
+// documented at ~/lab/notes/work/justfile-conventions.md — required
 // recipes per category/features, required dependencies on core composed
 // recipes, doc comments above every recipe, and (soft-check) section order.
 //

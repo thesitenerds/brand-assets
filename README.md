@@ -6,7 +6,7 @@ Build-time tooling for Go+Echo projects. One package, five engines:
 - **`brand-assets/og`** — Open Graph / Twitter summary_large_image card (1200×630 PNG)
 - **`brand-assets/fonts`** — manifest-driven WOFF2 vendoring with license allowlist + drift-detectable lockfile
 - **`brand-assets/legal-sync`** — structural parity check between MD templates and published HTML
-- **`brand-assets/justfile`** — justfile convention linter (verifies recipe naming, composition, docs, ordering against `~/workspace/notes/work/justfile-conventions.md`)
+- **`brand-assets/justfile`** — justfile convention linter (verifies recipe naming, composition, docs, ordering against `~/lab/notes/work/justfile-conventions.md`)
 
 All five are build-time tools. Nothing from this package ships to the browser; consumers run an engine during `pnpm build` or `pnpm check:*` and commit the output (if any).
 
@@ -152,7 +152,7 @@ if (fail) process.exit(1);
 
 ## Justfile linter — `brand-assets/justfile`
 
-Parses a project's `justfile` and verifies it conforms to the conventions documented at `~/workspace/notes/work/justfile-conventions.md` — required recipes per category + features, composition dependencies on `build` / `check` / `dev` / `run` / `docker-build` / `docker-run`, doc comments above every recipe, and ordering.
+Parses a project's `justfile` and verifies it conforms to the conventions documented at `~/lab/notes/work/justfile-conventions.md` — required recipes per category + features, composition dependencies on `build` / `check` / `dev` / `run` / `docker-build` / `docker-run`, doc comments above every recipe, and ordering.
 
 ```js
 // scripts/check-justfile.mjs
