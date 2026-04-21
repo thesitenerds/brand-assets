@@ -252,7 +252,7 @@ export async function fetchFonts({ manifest, outDir, checkOnly = false, log }) {
 
   const licenseText = [
     'Fonts in this directory are vendored from their upstream sources by',
-    'brand-assets/fonts. Used under the licenses listed below.',
+    'tsn-build-tools/fonts. Used under the licenses listed below.',
     '',
     ...manifest.families.map(licenseBlockFor),
     OFL_BODY,
