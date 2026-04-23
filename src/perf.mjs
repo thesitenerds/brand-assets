@@ -45,6 +45,11 @@ function pickMedian(values) {
   return sorted[Math.floor(sorted.length / 2)];
 }
 
+function pickMedianRun(runs, key) {
+  const sorted = [...runs].sort((a, b) => a[key] - b[key]);
+  return sorted[Math.floor(sorted.length / 2)];
+}
+
 function formatMs(value) {
   return `${(value / 1000).toFixed(2)}s`;
 }
@@ -55,6 +60,79 @@ function formatScore(value) {
 
 function formatCls(value) {
   return value.toFixed(3);
+}
+
+function extractDiagnostics(audits) {
+  let lcpElement = null;
+  const tables = audits['largest-contentful-paint-element']?.details?.items;
+  if (Array.isArray(tables) && tables.length >= 1) {
+    const node = tables[0]?.items?.[0]?.node;
+    if (node) {
+      const isImage = /^<(img|video|image)\b/i.test(node.snippet ?? '');
+      lcpElement = {
+        selector: node.selector ?? '',
+        label: (node.nodeLabel ?? '').split('\n')[0],
+        type: isImage ? 'image' : 'text',
+      };
+    }
+  }
+
+  let lcpPhases = null;
+  if (Array.isArray(tables) && tables.length >= 2) {
+    const items = tables[1]?.items ?? [];
+    if (items.length >= 4) {
+      lcpPhases = {
+        ttfb: items[0]?.timing ?? 0,
+        loadDelay: items[1]?.timing ?? 0,
+        loadTime: items[2]?.timing ?? 0,
+        renderDelay: items[3]?.timing ?? 0,
+      };
+    }
+  }
+
+  const blockingResources = (audits['render-blocking-resources']?.details?.items ?? [])
+    .filter((item) => item.wastedMs > 0)
+    .map((item) => ({ url: item.url, wastedMs: item.wastedMs }));
+
+  return { lcpElement, lcpPhases, blockingResources };
+}
+
+function formatLcpElement(el) {
+  if (!el) return '(unknown)';
+  const sel = el.selector.length > 55 ? `${el.selector.slice(0, 52)}...` : el.selector;
+  return `${sel} (${el.type})`;
+}
+
+function formatLcpPhases(phases) {
+  if (!phases) return '(unavailable)';
+  const entries = [
+    ['TTFB', phases.ttfb],
+    ['Load delay', phases.loadDelay],
+    ['Load time', phases.loadTime],
+    ['Render delay', phases.renderDelay],
+  ];
+  const bottleneck = entries.reduce((a, b) => (b[1] > a[1] ? b : a));
+  return entries
+    .filter(([, ms], i) => i === 0 || ms > 0)
+    .map(([label, ms]) => {
+      const part = `${label} ${Math.round(ms)}ms`;
+      return label === bottleneck[0] ? `${part} ← bottleneck` : part;
+    })
+    .join(' · ');
+}
+
+function logDiagnostics(log, { lcpElement, lcpPhases, blockingResources }) {
+  log(`LCP element  ${formatLcpElement(lcpElement)}`);
+  log(`LCP phases   ${formatLcpPhases(lcpPhases)}`);
+  if (blockingResources.length === 0) {
+    log(`Blocking     (none)`);
+  } else {
+    for (const [i, res] of blockingResources.entries()) {
+      const host = new URL(res.url).hostname;
+      const label = i === 0 ? 'Blocking' : '        ';
+      log(`${label}     ${host}  +${Math.round(res.wastedMs)}ms`);
+    }
+  }
 }
 
 async function runLighthouseOnce({ url, mode, runIndex, outputDir, chromePath, cwd }) {
@@ -109,6 +187,7 @@ async function runLighthouseOnce({ url, mode, runIndex, outputDir, chromePath, c
     tbt: audits['total-blocking-time'].numericValue,
     cls: audits['cumulative-layout-shift'].numericValue,
     path: outputPath,
+    ...extractDiagnostics(audits),
   };
 }
 
@@ -149,6 +228,8 @@ export async function runPerf({
     cls: pickMedian(runResults.map((r) => r.cls)),
   };
 
+  const medianRun = pickMedianRun(runResults, 'lcp');
+
   log('');
   log(`Median of ${runs} run(s) for ${url}`);
   log(`Mode  ${mode}`);
@@ -158,6 +239,8 @@ export async function runPerf({
   log(`LCP   ${formatMs(summary.lcp)}`);
   log(`TBT   ${Math.round(summary.tbt)}ms`);
   log(`CLS   ${formatCls(summary.cls)}`);
+  log('');
+  logDiagnostics(log, medianRun);
   log(`Raw reports saved to ${path.relative(cwd, runOutputDir)}`);
 
   return summary;
