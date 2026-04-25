@@ -1,6 +1,6 @@
 {
   "name": "tsn-build-tools",
-  "version": "0.7.0",
+  "version": "0.9.0",
   "description": "Build-time tooling for Go+Echo projects: favicon/OG-card generators, manifest-driven font vendoring, legal-doc drift detection, and justfile convention linter. Zero runtime dependency on this package — consumers call the engines once during build.",
   "license": "MIT",
   "author": "Julian Colon",

@@ -62,6 +62,25 @@ await buildOg({
 
 Required text: `eyebrowText`, `wordmarkText`, `taglineText`, `footerLeft`, `footerRight`. Required colors: `bgColor`, `lineColor`, `textColor`, `dimColor`, `accentColor`. Sizes and tracking have defaults.
 
+### Optional data tile
+
+Pass `dataTile` to render a small bordered stat tile in the upper-right corner — useful for product cards that need to signal "real working app, real numbers" at thumbnail size.
+
+```js
+await buildOg({
+  ...config.og,
+  fontPath, outDir,
+  dataTile: {
+    eyebrow: 'projected · 24 mo',           // required, uppercased on render
+    value: '$24,308',                        // required, the big number
+    sparkline: [12, 18, 14, 22, 28, 32, 36], // optional, ≥2 numeric values
+    footer: '+12.4% vs today',               // optional, rendered as-cased
+  },
+});
+```
+
+The tile inherits the palette: `lineColor` for the border, `dimColor` for the eyebrow/footer/sparkline, `textColor` for the value, `accentColor` for the sparkline endpoint dot. Text is vectorized through the same font as the rest of the card. Tile dimensions and typography are sized for the 1200×630 canvas; override `tileWidth`/`tileHeight`/`tile*Size`/`tile*Track` if your value text overflows.
+
 ## Fonts — `tsn-build-tools/fonts`
 
 Downloads WOFF2 files per a manifest, writes `LICENSES.txt` + `fonts.lock.json`, cleans up stale files. Variable-font CDNs (e.g. Google Fonts for Geist Mono) dedupe automatically — one file covers the whole requested weight range.

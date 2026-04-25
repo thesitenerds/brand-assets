@@ -21,6 +21,20 @@ const DEFAULTS = {
   taglineTrack: -1,
   footerSize: 20,
   footerTrack: 3,
+  // Optional dataTile defaults — see buildOg JSDoc for the dataTile shape.
+  tileWidth: 280,
+  tileHeight: 220,
+  tilePadX: 24,
+  tilePadY: 24,
+  tileEyebrowSize: 16,
+  tileEyebrowTrack: 2,
+  tileValueSize: 56,
+  tileValueTrack: -2,
+  tileFooterSize: 14,
+  tileFooterTrack: 1,
+  tileSparkHeight: 28,
+  tileSparkStroke: 2,
+  tileSparkDotR: 3,
 };
 
 function layoutText(font, text, fontSize, tracking, x, y, fill) {
@@ -78,6 +92,24 @@ function layoutRight(font, text, fontSize, tracking, rightX, y, fill) {
  * @param {number} [opts.taglineTrack=-1]
  * @param {number} [opts.footerSize=20]
  * @param {number} [opts.footerTrack=3]
+ * @param {object} [opts.dataTile]    — optional bordered stat tile in the upper-right
+ * @param {string} opts.dataTile.eyebrow   — required when dataTile present; uppercased on render
+ * @param {string} opts.dataTile.value     — required when dataTile present; the big number
+ * @param {number[]} [opts.dataTile.sparkline] — optional ≥2 values; renders a trendline in dimColor with an accent endpoint dot
+ * @param {string} [opts.dataTile.footer]      — optional small footer line beneath
+ * @param {number} [opts.tileWidth=280]
+ * @param {number} [opts.tileHeight=220]
+ * @param {number} [opts.tilePadX=24]
+ * @param {number} [opts.tilePadY=24]
+ * @param {number} [opts.tileEyebrowSize=16]
+ * @param {number} [opts.tileEyebrowTrack=2]
+ * @param {number} [opts.tileValueSize=56]
+ * @param {number} [opts.tileValueTrack=-2]
+ * @param {number} [opts.tileFooterSize=14]
+ * @param {number} [opts.tileFooterTrack=1]
+ * @param {number} [opts.tileSparkHeight=28]
+ * @param {number} [opts.tileSparkStroke=2]
+ * @param {number} [opts.tileSparkDotR=3]
  * @param {(msg: string) => void} [opts.log]
  */
 export async function buildOg(opts) {
@@ -145,10 +177,77 @@ export async function buildOg(opts) {
 
   const hairlineY = footerY - cfg.footerSize - 22;
 
+  // Optional dataTile in upper-right. Inherits palette + font; non-text
+  // primitives (border, sparkline) collected in `decorations`.
+  const decorations = [];
+  if (cfg.dataTile) {
+    const t = cfg.dataTile;
+    if (!t.eyebrow || !t.value) {
+      throw new Error('buildOg: dataTile requires both "eyebrow" and "value"');
+    }
+
+    const tileX = cfg.width - cfg.padX - cfg.tileWidth;
+    const tileY = cfg.padY;
+    const innerX = tileX + cfg.tilePadX;
+    const innerW = cfg.tileWidth - cfg.tilePadX * 2;
+
+    decorations.push(
+      `<rect x="${tileX}" y="${tileY}" width="${cfg.tileWidth}" height="${cfg.tileHeight}" fill="none" stroke="${cfg.lineColor}" stroke-width="1"/>`,
+    );
+
+    let cursorY = tileY + cfg.tilePadY + cfg.tileEyebrowSize;
+    const tileEyebrow = layoutText(
+      font, t.eyebrow.toUpperCase(), cfg.tileEyebrowSize, cfg.tileEyebrowTrack,
+      innerX, cursorY, cfg.dimColor,
+    );
+    allPaths.push(...tileEyebrow.paths);
+
+    cursorY += 18 + cfg.tileValueSize;
+    const tileValue = layoutText(
+      font, t.value, cfg.tileValueSize, cfg.tileValueTrack,
+      innerX, cursorY, cfg.textColor,
+    );
+    allPaths.push(...tileValue.paths);
+
+    if (Array.isArray(t.sparkline) && t.sparkline.length >= 2) {
+      const sparkY = cursorY + 14;
+      const min = Math.min(...t.sparkline);
+      const max = Math.max(...t.sparkline);
+      const range = max - min || 1;
+      const usableW = innerW - cfg.tileSparkDotR;
+      const step = usableW / (t.sparkline.length - 1);
+      const points = t.sparkline.map((v, i) => {
+        const px = innerX + i * step;
+        const py = sparkY + cfg.tileSparkHeight - ((v - min) / range) * cfg.tileSparkHeight;
+        return [px, py];
+      });
+      const d = points.map(([px, py], i) => `${i === 0 ? 'M' : 'L'}${px.toFixed(1)},${py.toFixed(1)}`).join(' ');
+      const [endX, endY] = points[points.length - 1];
+      decorations.push(
+        `<path d="${d}" fill="none" stroke="${cfg.dimColor}" stroke-width="${cfg.tileSparkStroke}" stroke-linecap="round" stroke-linejoin="round"/>`,
+        `<circle cx="${endX.toFixed(1)}" cy="${endY.toFixed(1)}" r="${cfg.tileSparkDotR}" fill="${cfg.accentColor}"/>`,
+      );
+      cursorY = sparkY + cfg.tileSparkHeight;
+    }
+
+    if (t.footer) {
+      cursorY += 16 + cfg.tileFooterSize;
+      const tileFooter = layoutText(
+        font, t.footer, cfg.tileFooterSize, cfg.tileFooterTrack,
+        innerX, cursorY, cfg.dimColor,
+      );
+      allPaths.push(...tileFooter.paths);
+    }
+  }
+
+  const decorationsBlock = decorations.length
+    ? '\n' + decorations.map(d => `  ${d}`).join('\n')
+    : '';
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${cfg.width}" height="${cfg.height}" viewBox="0 0 ${cfg.width} ${cfg.height}">
   <rect width="${cfg.width}" height="${cfg.height}" fill="${cfg.bgColor}"/>
   <line x1="${cfg.padX}" y1="${hairlineY}" x2="${cfg.width - cfg.padX}" y2="${hairlineY}" stroke="${cfg.lineColor}" stroke-width="1"/>
-  <circle cx="${cfg.width - cfg.padX - 6}" cy="${hairlineY}" r="4" fill="${cfg.accentColor}"/>
+  <circle cx="${cfg.width - cfg.padX - 6}" cy="${hairlineY}" r="4" fill="${cfg.accentColor}"/>${decorationsBlock}
 ${allPaths.map(p => `  <path fill="${p.fill}" d="${p.d}"/>`).join('\n')}
 </svg>
 `;
